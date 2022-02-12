@@ -4,7 +4,8 @@ func simplify(Sudoku *([9][9]byte)) bool {
 	methods := [...]func(Sudoku *([9][9]byte)) bool{
 		simplifyLastValue,
 		simplifyHiddenSingleInBox,
-		simplifyHiddenSingleInRowColumn}
+		simplifyHiddenSingleInRowColumn,
+		simplifyNakedSingle}
 	for endLoop := false; !endLoop; {
 		endLoop = true
 		for _, m := range methods {
@@ -141,6 +142,37 @@ func simplifyHiddenSingleInRowColumn(Sudoku *([9][9]byte)) bool {
 						Sudoku[x][y] = num
 						res = true
 					}
+				}
+			}
+		}
+	}
+	return res && judgeBoard(Sudoku, false)
+}
+
+func simplifyNakedSingle(Sudoku *([9][9]byte)) bool {
+	res := false
+	for x := 0; x < 9; x++ {
+		for y := 0; y < 9; y++ {
+			if Sudoku[x][y] == 0 {
+				var p [9]bool
+				for k := 0; k < 3; k++ {
+					i, _ := xyk2ij(x, y, k)
+					for l := 0; l < 9; l++ {
+						if num := ijk2num(Sudoku, i, l, k); num != 0 {
+							p[num-1] = true
+						}
+					}
+				}
+				var cnt, pos int
+				for num := 1; num <= 9; num++ {
+					if !p[num-1] {
+						cnt++
+						pos = num
+					}
+				}
+				if cnt == 1 {
+					Sudoku[x][y] = byte(pos)
+					res = true
 				}
 			}
 		}
